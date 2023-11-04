@@ -6,9 +6,9 @@ db = SQLAlchemy()
 
 class User(db.Model):
     id=db.Column(db.Integer(), primary_key=True)
-    username=db.Column(db.String(30), nullable=False, unique=True)
-    name =db.Column(db.String(80), nullable=False)
-    lastname=db.Column(db.String(80), nullable=False)
+    username= db.Column(db.String(30), nullable=False, unique=True)
+    name = db.Column(db.String(80), nullable=False)
+    lastname= db.Column(db.String(80), nullable=False)
     age=db.Column(db.Integer(), nullable=True)
     email=db.Column(db.String(80), nullable=True, unique=True)
     country=db.Column(db.String(60), nullable=True)
@@ -23,7 +23,7 @@ class User(db.Model):
             "age": self.age,
             "email": self.email,
             "country": self.country,
-            "favorites": list(map(lambda item: item.serialize(), self.favorite))
+            "favorites": list(map(lambda item: item.serialize(), self.favorites))
         }
       
 

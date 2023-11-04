@@ -78,6 +78,83 @@ def get_planet(theid=None):
         return ({"message": "planet doesn't exist"})
     return jsonify((planet.serialize())), 200
 
+@app.route ('/users', methods=['GET'])
+def get_users():
+    users = User.query.all()
+    return jsonify(list(map(lambda item : item.serialize(), users))), 200
+
+@app.route ('/users/favorites/<int:theid>', methods=['GET'])
+def get_user_favorites(theid=None):
+    user_favorites = Favorite.query.filter_by(user_id=theid)
+    
+    return jsonify(list(map(lambda user_favorites: user_favorites.serialize(), user_favorites))), 200
+
+
+#[POST] /favorite/planet/<int:planet_id> Add a new favorite planet to the current user with the planet id = planet_id.
+
+@app.route ('/favorite/<string:nature>/<int:planetid>/<int:theid>', methods = ['POST']) 
+def add_planet(nature, planetid, theid):
+    if nature.lower() == "planet":
+        favorite = Favorite.query.filter_by(user_id=theid, planet_id=planetid).first()
+
+        if favorite:
+            return ({"message": "planet already exists in favorites"}), 400
+
+        new_planet = Favorite(planet_id=planetid, user_id=theid)
+
+        db.session.add(new_planet)
+        
+        try:
+            db.session.commit()
+            return jsonify({"message": "planet added to favorites"}), 200
+        except Exception as error:
+            db.session.rollback()
+            return jsonify({"message": "error"}), 500 
+
+    if nature.lower() == "people":
+        favorite = Favorite.query.filter_by(user_id=theid, people_id=planetid).first()
+
+        if favorite:
+            return ({"message": "character already exists in favorites"}), 400
+
+        new_character = Favorite(people_id=planetid, user_id=theid)
+
+        db.session.add(new_character)
+        
+        try:
+            db.session.commit()
+            return jsonify({"message": "character added to favorites"}), 200
+        except Exception as error:
+            db.session.rollback()
+            return jsonify({"message": "error"}), 500 
+
+
+@app.route
+
+#[POST] /favorite/people/<int:people_id> Add new favorite people to the current user with the people id = people_id.
+
+# @app.route ('/favorite/people/<int:theid>', methods = ['POST']) 
+# def add_character_to_favorites(theid=None):
+#     request_body = request.get_json()
+#     user = User.query.get(request_body["user_id"])
+#     if user is None:
+#         return jsonify({"message": "user not found"}), 404
+#     people = People.query.get(theid)
+#     if people is None:
+#         return jsonify({"message": "character not found"}), 404
+#     favorite = Favorite()
+#     favorite.user_id = request_body["user_id"]
+#     favorite.people_id = theid
+#     db.session.add(favorite)
+
+#     try:
+#         db.session.commit()
+#         return jsonify("ok"), 200
+    
+#     except Exception as error:
+#         db.session.rollback()
+#         return jsonify({"message": "error"}), 500
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
