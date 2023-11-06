@@ -129,31 +129,125 @@ def add_planet(nature, planetid, theid):
             return jsonify({"message": "error"}), 500 
 
 
-@app.route
+@app.route('/favorite/<string:nature>/<int:favoriteid>/<int:theid>', methods=['DELETE'])
+def delete_favorite(nature, favoriteid, theid):
+    if nature.lower()== 'planet':
+        favorite_planet = Favorite.query.filter_by(user_id=theid, planet_id=favoriteid).first()
+      
+        if favorite_planet is None:
+            return ({"message": "Planet is not in this user favorites"}), 400
+       
+        db.session.delete(favorite_planet)
 
-#[POST] /favorite/people/<int:people_id> Add new favorite people to the current user with the people id = people_id.
+        try:
+            db.session.commit()
+            return jsonify({"message": "Planet erased succesfully"}), 200
+        except Exception as error:
+            db.session.rollback()
+            return jsonify({"message": "error"}), 500
+        
+    if nature.lower()== 'people':
+        favorite_character = Favorite.query.filter_by(user_id=theid, people_id=favoriteid).first()
 
-# @app.route ('/favorite/people/<int:theid>', methods = ['POST']) 
-# def add_character_to_favorites(theid=None):
-#     request_body = request.get_json()
-#     user = User.query.get(request_body["user_id"])
-#     if user is None:
-#         return jsonify({"message": "user not found"}), 404
-#     people = People.query.get(theid)
-#     if people is None:
-#         return jsonify({"message": "character not found"}), 404
-#     favorite = Favorite()
-#     favorite.user_id = request_body["user_id"]
-#     favorite.people_id = theid
-#     db.session.add(favorite)
+        if favorite_character is None:
+            return ({"message": "Character is not in this user favorites"}), 400
+      
+        db.session.delete(favorite_character)
+        try:
+            db.session.commit()
+            return jsonify({"message": "Character erased succesfully"}), 200
+        except Exception as error:
+            db.session.rollback()
+            return jsonify({"message": "error"}), 500
 
-#     try:
-#         db.session.commit()
-#         return jsonify("ok"), 200
+# Endpoint para modificar character
+
+@app.route ('/people/<int:theid>', methods = ['PUT'])
+def update_character(theid):
+    if theid is None:
+        return ({"message": "the id is necessary"}), 404
+    body= request.json
+    if body.get("name") is None:
+        return jsonify({"message":"name needed"}), 404
+    character = People.query.get(theid)
+    if character is None:
+        return jsonify({"message":"character doesn't exist"}), 404
+    character.name= body.get("name")
+
+    try:
+        db.session.commit()
+        return jsonify({"message":"Character modified"})
+
+    except Exception as error:
+        db.session.rollback()
+        return jsonify({"message": "error"}), 500
     
-#     except Exception as error:
-#         db.session.rollback()
-#         return jsonify({"message": "error"}), 500
+@app.route ('/planet/<int:theid>', methods = ['PUT'])
+def update_planet(theid):
+    if theid is None:
+        return ({"message": "the id is necessary"}), 404
+    body= request.json
+    if body.get("name") is None:
+        return jsonify({"message":"name needed"}), 404
+    planet = Planets.query.get(theid)
+    if planet is None:
+        return jsonify({"message":"character doesn't exist"}), 404
+    planet.name= body.get("name")
+    planet.population = body.get("population")
+
+    try:
+        db.session.commit()
+        return jsonify({"message":"Planet modified"})
+
+    except Exception as error:
+        db.session.rollback()
+        return jsonify({"message": "error"}), 500
+    
+# Endpoint para un nuevo character
+@app.route('/people', methods= ['POST'])
+def add_character():
+    body = request.json
+    if body.get("name") is None:
+        return ({"message": "A name is necessary"}), 404 
+    character = People(name=body.get("name"), side =body.get("side"), status = body.get("status"))
+    db.session.add(character)
+    try:
+        db.session.commit()
+        return jsonify({"message":"Character added"})
+
+    except Exception as error:
+        db.session.rollback()
+        return jsonify({"message": "error"}), 500
+
+#Endpoint para crear un nuevo planeta
+@app.route('/planet', methods= ['POST'])
+def add__new_planet():
+    body = request.json
+    if body.get("name") is None:
+        return ({"message": "A name is necessary"}), 404 
+    planet = Planets(name=body.get("name"), population =body.get("population"), terrain = body.get("terrain"))
+    db.session.add(planet)
+    try:
+        db.session.commit()
+        return jsonify({"message":"Planet added"}), 200
+
+    except Exception as error:
+        db.session.rollback()
+        return jsonify({"message": "error"}), 500
+
+#Endpoint para borrar planeta 
+@app.route('/planet/<int:planetid>', methods=['DELETE'])
+def delete_planet(planetid):
+    planet = Planets.query.get(planetid) 
+    if planet is None:
+       return jsonify({"message":"Planet doesn't exist"}), 404
+    db.session.delete(planet)
+    try:
+        db.session.commit()
+        return jsonify({"message":"Planet erased"}), 200
+    except Exception as error:
+        db.session.rollback()
+        return jsonify({"message": "error"}), 500
 
 
 # this only runs if `$ python src/app.py` is executed
