@@ -235,6 +235,7 @@ def add__new_planet():
         db.session.rollback()
         return jsonify({"message": "error"}), 500
 
+
 #Endpoint para borrar planeta 
 @app.route('/planet/<int:planetid>', methods=['DELETE'])
 def delete_planet(planetid):
@@ -248,7 +249,20 @@ def delete_planet(planetid):
     except Exception as error:
         db.session.rollback()
         return jsonify({"message": "error"}), 500
-
+    
+#Endpoint para borrar character 
+@app.route('/people/<int:peopleid>', methods=['DELETE'])
+def delete_character(peopleid):
+    character = People.query.get(peopleid) 
+    if character is None:
+       return jsonify({"message":"Character doesn't exist"}), 404
+    db.session.delete(character)
+    try:
+        db.session.commit()
+        return jsonify({"message":"Character erased"}), 200
+    except Exception as error:
+        db.session.rollback()
+        return jsonify({"message": "error"}), 500
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
